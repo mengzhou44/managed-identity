@@ -14,7 +14,13 @@ import * as appInsights from 'applicationinsights'
 import { DefaultAzureCredential } from '@azure/identity'
 import { BlobItem } from '@azure/storage-blob'
 
-appInsights.setup(process.env.APP_INSIGHTS_KEY).start()
+const config = {
+  sourceBlobStorageUri: process.env.SourceBlobStorage__serviceUri,
+  targetBlobStorageUri: process.env.TargetBlobStorage__serviceUri,
+  appInsightsKey: process.env.APPINSIGHTS_INSTRUMENTATIONKEY,
+}
+
+appInsights.setup(config.appInsightsKey).start()
 const appInsightsClient = appInsights.defaultClient
 
 export async function storageBlobTrigger(
@@ -22,13 +28,13 @@ export async function storageBlobTrigger(
   context: InvocationContext
 ): Promise<void> {
   const message = `Storage blob function processed blob "${context.triggerMetadata.name}" with size ${blob.length} bytes`
-  log(message)
+  trace(message)
   const sourceContainer = createBlobContainerClient(
-    process.env.SourceBlobStorageUri,
+    config.sourceBlobStorageUri,
     'test'
   )
   const targetContainer = createBlobContainerClient(
-    process.env.SourceBlobStorageUri,
+    config.targetBlobStorageUri,
     'target'
   )
   const containerExists = await targetContainer.exists()
@@ -40,7 +46,9 @@ export async function storageBlobTrigger(
     await copyBlobToNewContainer(sourceContainer, targetContainer, blob)
   }
 
-  log('The copying of files has been successfully completed.')
+  trace('The copying of files has been successfully completed.', {
+    userId: 'meng.zhou',
+  })
 }
 
 async function copyBlobToNewContainer(
@@ -55,7 +63,7 @@ async function copyBlobToNewContainer(
     sourceContainer,
     sourceBlob
   )
-  log(sourceSasToken)
+  trace('source Sas Token', { sourceSasToken })
   const sourceBlobUrl = `${sourceBlob.url}?${sourceSasToken}`
 
   const response = await targetBlob.beginCopyFromURL(sourceBlobUrl)
@@ -86,7 +94,7 @@ async function generateSourceSasToken(
 
 async function getUserDelegationKey(): Promise<UserDelegationKey> {
   const sourceBlobServiceClient = getBlobServiceClient(
-    process.env.SourceBlobStorageUri
+    config.sourceBlobStorageUri
   )
   const userDelegationKey = await sourceBlobServiceClient.getUserDelegationKey(
     new Date(),
@@ -108,15 +116,15 @@ function getBlobServiceClient(uri: string): BlobServiceClient {
   return new BlobServiceClient(uri, tokenCredential)
 }
 
-function log(message: string) {
-  appInsightsClient.trackEvent({
-    name: '/function',
-    properties: { message },
+function trace(message: string, meta: any = null) {
+  appInsightsClient.trackTrace({
+    message,
+    properties: { ...meta, applicationName: 'trrf/admin' },
   })
 }
 
 app.storageBlob('storageBlobTrigger', {
   path: 'test/{name}',
-  connection: 'blobStorage',
+  connection: 'SourceBlobStorage',
   handler: storageBlobTrigger,
 })
