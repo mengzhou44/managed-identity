@@ -1,4 +1,4 @@
-import { app, InvocationContext } from '@azure/functions'
+import { app, InvocationContext, output } from '@azure/functions'
 
 import {
   BlobServiceClient,
@@ -13,6 +13,11 @@ import {
 import * as appInsights from 'applicationinsights'
 import { DefaultAzureCredential } from '@azure/identity'
 import { BlobItem } from '@azure/storage-blob'
+
+const sqlFilesCopiedOutput = output.sql({
+  commandText: 'dbo.FilesCopied',
+  connectionStringSetting: 'SqlConnectionString',
+})
 
 const config = {
   sourceBlobStorageUri: process.env.SourceBlobStorage__serviceUri,
@@ -43,12 +48,21 @@ export async function storageBlobTrigger(
   }
 
   for await (const blob of sourceContainer.listBlobsFlat()) {
-    await copyBlobToNewContainer(sourceContainer, targetContainer, blob)
+    // await copyBlobToNewContainer(sourceContainer, targetContainer, blob)
+    const newItem = {
+      CreatedDate: Date.now(),
+      FileName: blob.name,
+    }
+    context.extraOutputs.set(sqlFilesCopiedOutput, newItem)
+    trace('Save new Item', {
+      userId: 'meng.zhou',
+      ...newItem,
+    })
   }
 
-  trace('The copying of files has been successfully completed.', {
-    userId: 'meng.zhou',
-  })
+  // trace('The copying of files has been successfully completed.', {
+  //   userId: 'meng.zhou',
+  // })
 }
 
 async function copyBlobToNewContainer(
@@ -125,6 +139,7 @@ function trace(message: string, meta: any = null) {
 
 app.storageBlob('storageBlobTrigger', {
   path: 'test/{name}',
+  extraOutputs: [sqlFilesCopiedOutput],
   connection: 'SourceBlobStorage',
   handler: storageBlobTrigger,
 })
