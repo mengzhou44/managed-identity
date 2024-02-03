@@ -11,7 +11,8 @@
     "@azure/functions": "^4.0.0",
     "@azure/identity": "^4.0.1",
     "@azure/storage-blob": "^12.17.0",
-    "applicationinsights": "^2.9.2"
+    "applicationinsights": "^2.9.2",
+    "mssql": "^10.0.2"
   },
   "devDependencies": {
     "@types/node": "18.x",

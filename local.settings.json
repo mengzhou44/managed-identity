@@ -3,10 +3,8 @@
   "Values": {
     "APPINSIGHTS_INSTRUMENTATIONKEY": "b3c5b61a-f275-421f-b465-27060a89a73b",
     "FUNCTIONS_WORKER_RUNTIME": "node",
-     "SourceBlobStorageAccountName": "mengstorage12345",
+    "SourceBlobStorageAccountName": "mengstorage12345",
     "TargetBlobStorage__serviceUri": "https://mengstorage12345.blob.core.windows.net",
-    "SourceBlobStorage__serviceUri": "https://mengstorage12345.blob.core.windows.net",
-    "SqlConnectionString": "Server=tcp:meng-db-server.database.windows.net,1433;Initial Catalog=meng-db;Persist Security Info=False;User ID=mengzhou;Password=Azurepassword123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;",
-    "SourceBlobStorage": "DefaultEndpointsProtocol=https;AccountName=mengstorage12345;AccountKey=/MO86zET0kRG3jARqAjJOF2aWbBy9NMMv5X5xgneCf4cA9qf8ZtPDcX3QZ/ojHn5bDrryGVNCmto+AStLVXfoA==;EndpointSuffix=core.windows.net"
+    "SourceBlobStorage__serviceUri": "https://mengstorage12345.blob.core.windows.net"
   }
 }
